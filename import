@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+# Copyright (c) 2013, Anton Backer <olegov@gmail.com>
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+
+set -e
+
+src_path="$HOME"/Dropbox/Apps/WorkFlowy
+branch=backups
+
+echo "Checking out the '$branch' branch..."
+if git show-ref --verify --quiet refs/heads/"$branch"; then
+    git checkout "$branch"
+    last_imported="$(git log --format='%ad' --date=short)"
+else
+    git checkout --orphan "$branch" && git rm -rf .
+    last_imported="0000-00-00"
+fi
+
+echo "Importing..."
+ln "$src_path"/Data/* .
+ln "$src_path"/History/* .
+
+echo "Normalizing..."
+# At some point files were being backed up with +x
+chmod 644 *.txt *.backup
+# Make sorting trivial
+rename 's/-(\d)\b/-0$1/g' *.txt *.backup  # rename -M?M-D?D to -MM-DD
+rename 's/.*\.(\d*-\d*-\d*)(?:\.workflowy)?/$1/' *.txt *.backup  # rename to YYYY-MM-DD.txt or .backup
+
+echo "Committing..."
+for f in *-*-*.txt; do
+    if [[ ! "${f%.txt}" > "$last_imported" ]]; then
+        rm "$f" "${f%.txt}.backup"
+        continue
+    fi
+    mv -f "$f" history.txt
+    mv -f "${f%.txt}.backup" data.backup
+    git add history.txt data.backup
+    # Try to commit if the index actually has changes; ignore otherwise
+    git commit --date="${f%.txt}T06:00:00" -m "Backup ${f%.txt}" || true
+done
+
+echo "Cleaning up..."
+find -mindepth 1 -not -name data.backup -and -not -name history.txt -and -not -path '*/\.*' -delete
+git gc --aggressive
