@@ -18,6 +18,7 @@ set -e
 
 src_path="$HOME"/Dropbox/Apps/WorkFlowy
 branch=backups
+orig_branch="$(git symbolic-ref HEAD | sed s,^refs/heads/,,)"
 
 echo "Checking out the '$branch' branch..."
 if git show-ref --verify --quiet refs/heads/"$branch"; then
@@ -55,3 +56,4 @@ done
 echo "Cleaning up..."
 find -mindepth 1 -not -name data.backup -and -not -name history.txt -and -not -path '*/\.*' -delete
 git gc --aggressive
+git checkout "$orig_branch"
