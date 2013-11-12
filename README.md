@@ -4,8 +4,8 @@ You can keep daily Workflowy backups in a git repo, I guess
 Then you can probably dissect them with git magic? I don't know, it sounds
 pretty risky. Better not do it.
 
-Usage
------
+Import
+------
 
 Clone this repo and run `./import`.
 
@@ -37,3 +37,12 @@ $ du -hs
 ```
 
 Seems to work.
+
+Git magic
+---------
+
+Find out when "string" was introduced:
+
+```sh
+$ git log -p -S"string" backups -- history.txt
+```
