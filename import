@@ -16,7 +16,12 @@
 
 set -e
 
+die() { echo "$1" >&2; exit 1; }
+
 src_path="$HOME"/Dropbox/Apps/WorkFlowy
+dst_path="$(dirname "$(readlink -f "$0")")"
+cd "$dst_path" || die "Unable to change directory"
+
 branch=backups
 orig_branch="$(git symbolic-ref HEAD | sed s,^refs/heads/,,)"
 
