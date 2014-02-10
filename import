@@ -18,6 +18,22 @@ set -e
 
 die() { echo "$1" >&2; exit 1; }
 
+while :
+do
+    case $1 in
+        --gc)
+            gc=1;
+            shift
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+find=find
+if which gfind >/dev/null; then find=gfind; fi
+
 src_path="$HOME"/Dropbox/Apps/WorkFlowy
 dst_path="$(dirname "$(readlink -f "$0")")"
 cd "$dst_path" || die "Unable to change directory"
@@ -59,6 +75,6 @@ for f in *-*-*.txt; do
 done
 
 echo "Cleaning up..."
-find -mindepth 1 -not -name data.backup -and -not -name history.txt -and -not -path '*/\.*' -delete
-git gc --aggressive
+$find -mindepth 1 -not -name data.backup -and -not -name history.txt -and -not -path '*/\.*' -delete
+[[ -z "$gc" ]] || git gc --aggressive
 git checkout "$orig_branch"
