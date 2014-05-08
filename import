@@ -75,6 +75,11 @@ for f in *-*-*.txt; do
 done
 
 echo "Cleaning up..."
-$find -mindepth 1 -not -name data.backup -and -not -name history.txt -and -not -path '*/\.*' -delete
+$find \
+    -mindepth 1 \
+    -not -name data.backup -and \
+    -not -name history.txt -and \
+    -not -path '*/\.*' \
+    -delete
 [[ -z "$gc" ]] || git gc --aggressive
 git checkout "$orig_branch"
