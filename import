@@ -34,8 +34,11 @@ done
 find=find
 if which gfind >/dev/null; then find=gfind; fi
 
+readlink=readlink
+if which greadlink >/dev/null; then readlink=greadlink; fi
+
 src_path="$HOME"/Dropbox/Apps/WorkFlowy
-dst_path="$(dirname "$(readlink -f "$0")")"
+dst_path="$(dirname "$("$readlink" -f "$0")")"
 cd "$dst_path" || die "Unable to change directory"
 
 branch=backups
